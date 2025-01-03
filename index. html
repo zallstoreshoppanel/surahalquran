@@ -1,0 +1,192 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al-Qur'an Online</title>
+  <style>
+     :root {
+      --bg-color-light: #f8f9fa;
+      --text-color-light: #333;
+      --content-bg-light: #ffffff;
+      --header-bg-light: #6200ea;
+
+      --bg-color-dark: #121212;
+      --text-color-dark: #e0e0e0;
+      --content-bg-dark: #1e1e1e;
+      --header-bg-dark: #3700b3;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color-light);
+      color: var(--text-color-light);
+      transition: all 0.3s ease;
+    }
+
+    header {
+      text-align: center;
+      background-color: var(--header-bg-light);
+      color: white;
+      padding: 1em 0;
+    }
+
+    nav {
+      padding: 1em;
+      background: #e9ecef;
+      text-align: center;
+    }
+
+    select {
+      padding: 0.5em;
+      font-size: 1em;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    main {
+      padding: 1em;
+    }
+
+    #content {
+      background-color: var(--content-bg-light);
+      padding: 1em;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .dark-mode {
+      --bg-color-light: var(--bg-color-dark);
+      --text-color-light: var(--text-color-dark);
+      --content-bg-light: var(--content-bg-dark);
+      --header-bg-light: var(--header-bg-dark);
+    }
+    
+#content {
+  background: white;
+  padding: 1em;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#verses {
+  margin-top: 1em;
+}
+
+.verse {
+  margin-bottom: 1em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+}
+
+.verse span {
+  display: block;
+  margin-bottom: 0.5em;
+  font-size: 1.2em;
+}
+
+.arabic {
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: right;
+  color: #2c3e50;
+}
+
+.latin {
+  font-size: 1em;
+  font-style: italic;
+  color: #7f8c8d;
+}
+
+  </style>
+</head>
+<body>
+  <div id="app">
+  <header>
+      <h1>Al-Qur'an Online</h1>
+      <button id="mode-toggle">Switch to Dark Mode</button>
+    </header>
+    <nav>
+      <select id="surah-select"></select>
+    </nav>
+    <main>
+      <div id="content">
+        <h2 id="surah-name">Surah Name</h2>
+        <div id="verses"></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    // Data otomatis dari API
+    const API_URL = "https://api.alquran.cloud/v1/surah";
+
+    // DOM Elements
+    const surahSelect = document.getElementById("surah-select");
+    const surahName = document.getElementById("surah-name");
+    const versesContainer = document.getElementById("verses");
+
+    // Fetch Surah List
+    fetch(API_URL)
+      .then(response => response.json())
+      .then(data => {
+        const surahs = data.data;
+
+        // Populate dropdown
+        surahs.forEach((surah, index) => {
+          const option = document.createElement("option");
+          option.value = surah.number;
+          option.textContent = `${surah.number}. ${surah.englishName}`;
+          surahSelect.appendChild(option);
+        });
+
+        // Load first Surah by default
+        loadSurah(1);
+
+        // Change Surah on selection
+        surahSelect.addEventListener("change", (e) => {
+          loadSurah(e.target.value);
+        });
+      });
+
+    // Load Surah
+    function loadSurah(surahNumber) {
+      fetch(`${API_URL}/${surahNumber}`)
+        .then(response => response.json())
+        .then(data => {
+          const surah = data.data;
+
+          // Update Surah Name
+          surahName.textContent = `${surah.englishName} (${surah.name})`;
+
+          // Update Verses
+          versesContainer.innerHTML = "";
+          surah.ayahs.forEach((ayah) => {
+            const verseDiv = document.createElement("div");
+            verseDiv.classList.add("verse");
+            verseDiv.innerHTML = `
+              <span class="arabic">${ayah.text}</span>
+              <span class="latin">(${ayah.numberInSurah})</span>
+            `;
+            versesContainer.appendChild(verseDiv);
+          });
+        });
+    }
+    
+// Mode toggle functionality
+    const toggleButton = document.getElementById("mode-toggle");
+    const body = document.body;
+
+    toggleButton.addEventListener("click", () => {
+      body.classList.toggle("dark-mode");
+      if (body.classList.contains("dark-mode")) {
+        toggleButton.textContent = "Switch to Light Mode";
+      } else {
+        toggleButton.textContent = "Switch to Dark Mode";
+      }
+    });
+  </script>
+</body>
+</html>
